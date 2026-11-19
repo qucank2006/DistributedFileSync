@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.ShellController" stylesheets="@../theme/mocha.css">
+    <left>
+        <VBox prefWidth="224" spacing="7" styleClass="sidebar">
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="brand">
+                <Label text="DFS" styleClass="brand-mark"/>
+                <VBox spacing="3">
+                    <Label text="Đồng bộ phân tán" styleClass="brand-name"/>
+                    <Label text="Đồ án DACS4" styleClass="muted-text"/>
+                </VBox>
+            </HBox>
+            <Label text="ĐIỀU HƯỚNG" styleClass="eyebrow"/>
+            <Button fx:id="dashboard" text="Tổng quan" onAction="#showDashboard" maxWidth="Infinity" styleClass="nav-button"/>
+            <Button fx:id="files" text="Quản lý tệp" onAction="#showFiles" maxWidth="Infinity" styleClass="nav-button"/>
+            <Button fx:id="history" text="Lịch sử phiên bản" onAction="#showHistory" maxWidth="Infinity" styleClass="nav-button"/>
+            <Button fx:id="conflicts" text="Xử lý xung đột" onAction="#showConflicts" maxWidth="Infinity" styleClass="nav-button"/>
+            <Button fx:id="devices" text="Quản lý thiết bị" onAction="#showDevices" maxWidth="Infinity" styleClass="nav-button"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <VBox spacing="5" styleClass="sidebar-note">
+                <Label text="BẢN MẪU" styleClass="eyebrow"/>
+                <Label text="Dữ liệu tệp và thiết bị là dữ liệu minh họa." wrapText="true" styleClass="muted-text"/>
+            </VBox>
+        </VBox>
+    </left>
+    <center>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header">
+                <Label fx:id="pageTitle" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="connectionBadge" text="Chưa kết nối" styleClass="badge,muted"/>
+            </HBox>
+            <StackPane fx:id="content" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </center>
+</BorderPane>

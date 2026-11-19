@@ -1,0 +1,109 @@
+.root, .dialog-pane {
+    -mocha-base: #1e1e2e;
+    -mocha-mantle: #181825;
+    -mocha-surface: #313244;
+    -mocha-text: #cdd6f4;
+    -mocha-muted: #a6adc8;
+    -mocha-blue: #89b4fa;
+    -mocha-green: #a6e3a1;
+    -mocha-yellow: #f9e2af;
+    -mocha-red: #f38ba8;
+    -mocha-mauve: #cba6f7;
+    -fx-base: -mocha-surface;
+    -fx-background: -mocha-base;
+    -fx-background-color: -mocha-base;
+    -fx-control-inner-background: -mocha-mantle;
+    -fx-control-inner-background-alt: -mocha-base;
+    -fx-accent: #45475a;
+    -fx-focus-color: -mocha-blue;
+    -fx-faint-focus-color: transparent;
+    -fx-text-base-color: -mocha-text;
+    -fx-selection-bar-text: -mocha-text;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+}
+.label { -fx-text-fill: -mocha-text; }
+.sidebar { -fx-background-color: -mocha-mantle; -fx-padding: 23 14 17 14; }
+.brand { -fx-padding: 0 1 22 1; }
+.brand-mark {
+    -fx-background-color: -mocha-mauve;
+    -fx-background-radius: 10;
+    -fx-padding: 9 7;
+    -fx-text-fill: -mocha-mantle;
+    -fx-font-weight: bold;
+}
+.brand-name { -fx-font-size: 14px; -fx-font-weight: bold; }
+.eyebrow { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -mocha-mauve; -fx-padding: 0 0 3 4; }
+.sidebar-note { -fx-background-color: -mocha-base; -fx-background-radius: 10; -fx-padding: 11; }
+.header {
+    -fx-padding: 18 24;
+    -fx-background-color: -mocha-mantle;
+    -fx-border-color: transparent transparent -mocha-surface -mocha-surface;
+}
+.page-title { -fx-font-size: 25px; -fx-font-weight: bold; }
+.page { -fx-padding: 22 24 24 24; }
+.section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.muted-text { -fx-text-fill: -mocha-muted; }
+.metric-value { -fx-font-size: 24px; -fx-font-weight: bold; }
+.success-text { -fx-text-fill: -mocha-green; }
+.warning-text { -fx-text-fill: -mocha-yellow; }
+.danger-text { -fx-text-fill: -mocha-red; }
+.card { -fx-background-color: -mocha-surface; -fx-background-radius: 12; -fx-padding: 14; }
+.badge { -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 12; }
+.badge.success { -fx-background-color: #273b37; -fx-text-fill: -mocha-green; }
+.badge.warning { -fx-background-color: #40382f; -fx-text-fill: -mocha-yellow; }
+.badge.danger { -fx-background-color: #43303e; -fx-text-fill: -mocha-red; }
+.badge.info { -fx-background-color: #29354e; -fx-text-fill: -mocha-blue; }
+.badge.muted { -fx-background-color: -mocha-surface; -fx-text-fill: -mocha-muted; }
+
+.button, .combo-box, .text-field {
+    -fx-background-color: -mocha-surface;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: transparent;
+    -fx-min-height: 34px;
+}
+.button { -fx-padding: 6 12; -fx-text-fill: -mocha-text; -fx-cursor: hand; }
+.button:hover, .combo-box:hover { -fx-background-color: #45475a; }
+.button:focused, .combo-box:focused, .text-field:focused { -fx-border-color: -mocha-blue; }
+.button.primary { -fx-background-color: -mocha-blue; -fx-text-fill: -mocha-mantle; -fx-font-weight: bold; }
+.button.primary:hover { -fx-background-color: #a7c5fb; }
+.button.nav-button { -fx-background-color: transparent; -fx-alignment: center-left; -fx-graphic-text-gap: 10; -fx-padding: 10; }
+.button.nav-button:hover { -fx-background-color: -mocha-surface; }
+.button.nav-button.active { -fx-background-color: #30324b; -fx-text-fill: -mocha-blue; -fx-font-weight: bold; }
+.nav-icon { -fx-fill: transparent; -fx-stroke: -mocha-muted; -fx-stroke-width: 1.35; }
+.nav-button.active .nav-icon { -fx-stroke: -mocha-blue; }
+.text-field { -fx-text-fill: -mocha-text; -fx-prompt-text-fill: -mocha-muted; -fx-padding: 6 10; }
+.text-field.server-field { -fx-background-color: -mocha-mantle; -fx-border-color: #585b70; }
+.text-field.server-field:invalid { -fx-border-color: -mocha-red; }
+.text-field.server-field:focused { -fx-border-color: -mocha-blue; }
+.combo-box .list-cell { -fx-text-fill: -mocha-text; }
+.combo-box-popup .list-view { -fx-background-color: -mocha-surface; }
+
+.table-view {
+    -fx-background-color: -mocha-mantle;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -mocha-surface;
+    -fx-padding: 4;
+    -fx-fixed-cell-size: 38px;
+}
+.table-view .column-header-background {
+    -fx-background-color: -mocha-surface;
+    -fx-background-radius: 6 6 0 0;
+}
+.table-view .column-header, .table-view .filler { -fx-background-color: transparent; -fx-size: 36px; }
+.table-view .column-header .label { -fx-alignment: center-left; -fx-padding: 0 8; -fx-text-fill: -mocha-muted; }
+.table-row-cell { -fx-table-cell-border-color: transparent; }
+.table-row-cell:filled:hover { -fx-background-color: #292b40; }
+.table-row-cell:filled:selected { -fx-background-color: #3b4160; }
+.table-cell { -fx-padding: 0 8; -fx-alignment: center-left; -fx-text-fill: -mocha-text; }
+
+.table-view .table-cell.numeric-column, .table-view .column-header.numeric-column .label {
+    -fx-alignment: center-right;
+}
+
+.dialog-pane { -fx-padding: 8; }
+.dialog-pane .header-panel { -fx-background-color: -mocha-surface; -fx-background-radius: 8; }
+.dialog-pane .header-panel .label { -fx-font-weight: bold; -fx-font-size: 15px; }
+.dialog-pane .content.label { -fx-wrap-text: true; }

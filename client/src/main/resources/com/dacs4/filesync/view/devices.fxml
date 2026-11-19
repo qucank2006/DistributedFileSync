@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.DevicesController" spacing="16" styleClass="page">
+    <VBox spacing="10" styleClass="card">
+        <Label text="Kết nối máy chủ" styleClass="section-title"/>
+        <Label text="Nhập địa chỉ IPv4 và cổng TCP của máy chủ." styleClass="muted-text"/>
+        <GridPane hgap="10" vgap="5">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS"/>
+                <ColumnConstraints minWidth="135"/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <fx:define>
+                <TextField fx:id="ip" promptText="192.168.1.10" styleClass="server-field"
+                           onAction="#connectServer" GridPane.rowIndex="1"/>
+                <TextField fx:id="port" text="5000" promptText="5000" styleClass="server-field"
+                           onAction="#connectServer" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </fx:define>
+            <Label text="Địa chỉ IPv4" labelFor="$ip"/>
+            <Label text="Cổng" labelFor="$port" GridPane.columnIndex="1"/>
+            <fx:reference source="ip"/>
+            <fx:reference source="port"/>
+            <HBox spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                <Button fx:id="connect" text="Kết nối" onAction="#connectServer" styleClass="primary"/>
+                <Button fx:id="disconnect" text="Ngắt kết nối" onAction="#disconnect"/>
+            </HBox>
+            <Label fx:id="ipError" styleClass="danger-text" wrapText="true" GridPane.rowIndex="2"/>
+            <Label fx:id="portError" styleClass="danger-text" wrapText="true"
+                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        </GridPane>
+        <Label fx:id="connectionDetail" wrapText="true"/>
+    </VBox>
+    <Label text="Thiết bị minh họa" styleClass="section-title"/>
+    <TableView fx:id="devices" VBox.vgrow="ALWAYS" minHeight="140"/>
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <Label fx:id="selectedDevice" styleClass="muted-text" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+</VBox>

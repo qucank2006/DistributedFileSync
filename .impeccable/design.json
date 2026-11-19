@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-19T15:54:31.561Z",
+  "title": "Design System — DistributedFileSync",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "tonalRamp": [
+          "oklch(15% 0.028 259.9)",
+          "oklch(25% 0.056 259.9)",
+          "oklch(35% 0.080 259.9)",
+          "oklch(45% 0.100 259.9)",
+          "oklch(55% 0.111 259.9)",
+          "oklch(65% 0.111 259.9)",
+          "oklch(80% 0.078 259.9)",
+          "oklch(95% 0.024 259.9)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
+        "tonalRamp": [
+          "oklch(15% 0.021 262.0)",
+          "oklch(25% 0.042 262.0)",
+          "oklch(35% 0.060 262.0)",
+          "oklch(45% 0.075 262.0)",
+          "oklch(55% 0.083 262.0)",
+          "oklch(65% 0.083 262.0)",
+          "oklch(80% 0.058 262.0)",
+          "oklch(95% 0.018 262.0)"
+        ]
+      },
+      "mauve": {
+        "role": "secondary",
+        "displayName": "Mauve",
+        "tonalRamp": [
+          "oklch(15% 0.030 304.8)",
+          "oklch(25% 0.059 304.8)",
+          "oklch(35% 0.085 304.8)",
+          "oklch(45% 0.107 304.8)",
+          "oklch(55% 0.119 304.8)",
+          "oklch(65% 0.119 304.8)",
+          "oklch(80% 0.083 304.8)",
+          "oklch(95% 0.026 304.8)"
+        ]
+      },
+      "base": {
+        "role": "neutral",
+        "displayName": "Base",
+        "tonalRamp": [
+          "oklch(15% 0.008 283.9)",
+          "oklch(25% 0.015 283.9)",
+          "oklch(35% 0.022 283.9)",
+          "oklch(45% 0.027 283.9)",
+          "oklch(55% 0.030 283.9)",
+          "oklch(65% 0.030 283.9)",
+          "oklch(80% 0.021 283.9)",
+          "oklch(95% 0.007 283.9)"
+        ]
+      },
+      "mantle": {
+        "role": "neutral",
+        "displayName": "Mantle",
+        "tonalRamp": [
+          "oklch(15% 0.006 284.1)",
+          "oklch(25% 0.013 284.1)",
+          "oklch(35% 0.018 284.1)",
+          "oklch(45% 0.023 284.1)",
+          "oklch(55% 0.025 284.1)",
+          "oklch(65% 0.025 284.1)",
+          "oklch(80% 0.018 284.1)",
+          "oklch(95% 0.006 284.1)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15% 0.008 282.0)",
+          "oklch(25% 0.016 282.0)",
+          "oklch(35% 0.023 282.0)",
+          "oklch(45% 0.029 282.0)",
+          "oklch(55% 0.032 282.0)",
+          "oklch(65% 0.032 282.0)",
+          "oklch(80% 0.022 282.0)",
+          "oklch(95% 0.007 282.0)"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Surface Hover",
+        "tonalRamp": [
+          "oklch(15% 0.008 280.2)",
+          "oklch(25% 0.016 280.2)",
+          "oklch(35% 0.023 280.2)",
+          "oklch(45% 0.029 280.2)",
+          "oklch(55% 0.032 280.2)",
+          "oklch(65% 0.032 280.2)",
+          "oklch(80% 0.022 280.2)",
+          "oklch(95% 0.007 280.2)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15% 0.011 272.3)",
+          "oklch(25% 0.021 272.3)",
+          "oklch(35% 0.031 272.3)",
+          "oklch(45% 0.038 272.3)",
+          "oklch(55% 0.043 272.3)",
+          "oklch(65% 0.043 272.3)",
+          "oklch(80% 0.030 272.3)",
+          "oklch(95% 0.009 272.3)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.010 273.9)",
+          "oklch(25% 0.020 273.9)",
+          "oklch(35% 0.028 273.9)",
+          "oklch(45% 0.036 273.9)",
+          "oklch(55% 0.040 273.9)",
+          "oklch(65% 0.040 273.9)",
+          "oklch(80% 0.028 273.9)",
+          "oklch(95% 0.009 273.9)"
+        ]
+      },
+      "nav-selected": {
+        "role": "neutral",
+        "displayName": "Nav Selected",
+        "tonalRamp": [
+          "oklch(15% 0.011 280.1)",
+          "oklch(25% 0.022 280.1)",
+          "oklch(35% 0.032 280.1)",
+          "oklch(45% 0.040 280.1)",
+          "oklch(55% 0.044 280.1)",
+          "oklch(65% 0.044 280.1)",
+          "oklch(80% 0.031 280.1)",
+          "oklch(95% 0.010 280.1)"
+        ]
+      },
+      "row-hover": {
+        "role": "neutral",
+        "displayName": "Row Hover",
+        "tonalRamp": [
+          "oklch(15% 0.010 279.6)",
+          "oklch(25% 0.019 279.6)",
+          "oklch(35% 0.027 279.6)",
+          "oklch(45% 0.034 279.6)",
+          "oklch(55% 0.038 279.6)",
+          "oklch(65% 0.038 279.6)",
+          "oklch(80% 0.027 279.6)",
+          "oklch(95% 0.008 279.6)"
+        ]
+      },
+      "row-selected": {
+        "role": "neutral",
+        "displayName": "Row Selected",
+        "tonalRamp": [
+          "oklch(15% 0.013 275.2)",
+          "oklch(25% 0.027 275.2)",
+          "oklch(35% 0.039 275.2)",
+          "oklch(45% 0.048 275.2)",
+          "oklch(55% 0.054 275.2)",
+          "oklch(65% 0.054 275.2)",
+          "oklch(80% 0.037 275.2)",
+          "oklch(95% 0.012 275.2)"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.027 142.7)",
+          "oklch(25% 0.055 142.7)",
+          "oklch(35% 0.079 142.7)",
+          "oklch(45% 0.098 142.7)",
+          "oklch(55% 0.109 142.7)",
+          "oklch(65% 0.109 142.7)",
+          "oklch(80% 0.076 142.7)",
+          "oklch(95% 0.024 142.7)"
+        ]
+      },
+      "success-background": {
+        "role": "tertiary",
+        "displayName": "Success Background",
+        "tonalRamp": [
+          "oklch(15% 0.007 180.8)",
+          "oklch(25% 0.013 180.8)",
+          "oklch(35% 0.019 180.8)",
+          "oklch(45% 0.024 180.8)",
+          "oklch(55% 0.027 180.8)",
+          "oklch(65% 0.027 180.8)",
+          "oklch(80% 0.019 180.8)",
+          "oklch(95% 0.006 180.8)"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.5)",
+          "oklch(25% 0.035 86.5)",
+          "oklch(35% 0.051 86.5)",
+          "oklch(45% 0.063 86.5)",
+          "oklch(55% 0.070 86.5)",
+          "oklch(65% 0.070 86.5)",
+          "oklch(80% 0.049 86.5)",
+          "oklch(95% 0.015 86.5)"
+        ]
+      },
+      "warning-background": {
+        "role": "tertiary",
+        "displayName": "Warning Background",
+        "tonalRamp": [
+          "oklch(15% 0.005 70.4)",
+          "oklch(25% 0.009 70.4)",
+          "oklch(35% 0.014 70.4)",
+          "oklch(45% 0.017 70.4)",
+          "oklch(55% 0.019 70.4)",
+          "oklch(65% 0.019 70.4)",
+          "oklch(80% 0.013 70.4)",
+          "oklch(95% 0.004 70.4)"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15% 0.032 2.8)",
+          "oklch(25% 0.065 2.8)",
+          "oklch(35% 0.093 2.8)",
+          "oklch(45% 0.117 2.8)",
+          "oklch(55% 0.130 2.8)",
+          "oklch(65% 0.130 2.8)",
+          "oklch(80% 0.091 2.8)",
+          "oklch(95% 0.029 2.8)"
+        ]
+      },
+      "danger-background": {
+        "role": "tertiary",
+        "displayName": "Danger Background",
+        "tonalRamp": [
+          "oklch(15% 0.009 336.1)",
+          "oklch(25% 0.018 336.1)",
+          "oklch(35% 0.026 336.1)",
+          "oklch(45% 0.032 336.1)",
+          "oklch(55% 0.036 336.1)",
+          "oklch(65% 0.036 336.1)",
+          "oklch(80% 0.025 336.1)",
+          "oklch(95% 0.008 336.1)"
+        ]
+      },
+      "info-background": {
+        "role": "tertiary",
+        "displayName": "Info Background",
+        "tonalRamp": [
+          "oklch(15% 0.012 264.3)",
+          "oklch(25% 0.024 264.3)",
+          "oklch(35% 0.034 264.3)",
+          "oklch(45% 0.043 264.3)",
+          "oklch(55% 0.047 264.3)",
+          "oklch(65% 0.047 264.3)",
+          "oklch(80% 0.033 264.3)",
+          "oklch(95% 0.010 264.3)"
+        ]
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Emphasizes the main action.",
+      "html": "<button class=\"ds-button\" type=\"button\">Đồng bộ</button>",
+      "css": ".ds-button{font-family:\"Segoe UI\",sans-serif;font-size:13px;min-height:34px;border:1px solid transparent;border-radius:8px;padding:6px 12px;background:#89b4fa;color:#181825;font-weight:700;cursor:pointer}.ds-button:hover{background:#a7c5fb}.ds-button:focus-visible{outline:none;border-color:#89b4fa;}.ds-button:disabled{opacity:.4;cursor:default}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supports adjacent actions.",
+      "html": "<button class=\"ds-button\" type=\"button\">Tải xuống</button>",
+      "css": ".ds-button{font-family:\"Segoe UI\",sans-serif;font-size:13px;min-height:34px;border:1px solid transparent;border-radius:8px;padding:6px 12px;background:#313244;color:#cdd6f4;font-weight:400;cursor:pointer}.ds-button:hover{background:#45475a}.ds-button:focus-visible{outline:none;border-color:#89b4fa;}.ds-button:disabled{opacity:.4;cursor:default}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Filters files by name or type.",
+      "html": "<input class=\"ds-field\" type=\"search\" aria-label=\"Tìm tên hoặc loại tệp\" placeholder=\"Tìm tên hoặc loại tệp…\">",
+      "css": ".ds-field{font-family:\"Segoe UI\",sans-serif;font-size:13px;min-height:34px;border:1px solid transparent;border-radius:8px;box-sizing:border-box;padding:6px 10px;background:#313244;color:#cdd6f4}.ds-field::placeholder{color:#a6adc8}.ds-field:focus-visible{outline:none;border-color:#89b4fa;}"
+    },
+    {
+      "name": "Sidebar item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Displays an outline icon and the current destination.",
+      "html": "<nav class=\"ds-sidebar\"><button type=\"button\" class=\"ds-nav\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 17 17\" width=\"17\" height=\"17\" aria-hidden=\"true\"><path d=\"M1 4h6l2 2h7v9H1z\"/></svg>Quản lý tệp</button></nav>",
+      "css": ".ds-sidebar{background:#181825;padding:7px}.ds-nav{font-family:\"Segoe UI\",sans-serif;font-size:13px;min-height:34px;border:1px solid transparent;border-radius:8px;display:flex;align-items:center;gap:10px;width:100%;padding:10px;background:transparent;color:#cdd6f4;cursor:pointer}.ds-icon{fill:none;stroke:#a6adc8;stroke-width:1.35}.ds-nav:hover{background:#313244}.ds-nav[aria-current=page]{background:#30324b;color:#89b4fa;font-weight:700}.ds-nav[aria-current=page] .ds-icon{stroke:currentColor}.ds-nav:focus-visible{outline:none;border-color:#89b4fa;}"
+    },
+    {
+      "name": "Success badge",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "Labels an online or synchronized state.",
+      "html": "<span class=\"ds-badge\">Đã đồng bộ</span>",
+      "css": ".ds-badge{font-family:\"Segoe UI\",sans-serif;display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:12px;background:#273b37;color:#a6e3a1}"
+    },
+    {
+      "name": "Metric card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Pairs a summary label with a count.",
+      "html": "<div class=\"ds-card\"><span class=\"ds-metric-label\">Tệp đã đồng bộ</span><strong class=\"ds-metric\">8</strong></div>",
+      "css": ".ds-card{font-family:\"Segoe UI\",sans-serif;display:grid;gap:8px;padding:14px;border-radius:12px;background:#313244}.ds-metric-label{font-size:13px;color:#a6adc8}.ds-metric{font-size:24px;font-weight:700;color:#a6e3a1}"
+    }
+  ],
+  "narrative": {
+    "overview": "The interface uses a compact desktop console layout. A persistent sidebar holds the DFS mark, five destinations, and a demo notice. The workspace pairs a prominent Vietnamese page title with a connection badge, then uses compact controls, flat cards, and dense tables.",
+    "keyCharacteristics": [
+      "Mocha surfaces distinguish the shell, workspace, and grouped content.",
+      "Pastel colors identify actions, focus, and status.",
+      "Outline icons accompany navigation labels."
+    ],
+    "dos": [
+      "Do pair semantic colors with written status labels.",
+      "Do keep the active navigation fill and keyboard focus border visually distinct.",
+      "Do align comparison cards so the same fields can be scanned across both versions."
+    ]
+  }
+}
