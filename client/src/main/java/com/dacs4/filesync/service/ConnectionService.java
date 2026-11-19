@@ -28,11 +28,16 @@ public final class ConnectionService implements AutoCloseable {
     private final ExecutorService worker = Executors.newSingleThreadExecutor(
         Thread.ofVirtual().name("tcp-client").factory());
     private Future<?> task;
+    private TcpClient connectedClient;
     private long generation;
     private boolean closed;
 
     public ReadOnlyObjectProperty<Status> statusProperty() {
         return status.getReadOnlyProperty();
+    }
+
+    public TcpClient connectedClient() {
+        return connectedClient;
     }
 
     public void connect(String address, int port) {
@@ -50,6 +55,7 @@ public final class ConnectionService implements AutoCloseable {
             task.cancel(true);
             task = null;
         }
+        connectedClient = null;
         status.set(new Status(ConnectionState.DISCONNECTED, ""));
     }
 
@@ -61,7 +67,12 @@ public final class ConnectionService implements AutoCloseable {
                 try (var client = new TcpClient()) {
                     UUID session = client.connect(address, port, "DistributedFileSync");
                     wasConnected = true;
-                    publish(attempt, ConnectionState.CONNECTED, address + ":" + port + " · Phiên " + session);
+                    Platform.runLater(() -> {
+                        if (attempt == generation) {
+                            connectedClient = client;
+                            status.set(new Status(ConnectionState.CONNECTED, address + ":" + port + " · Phiên " + session));
+                        }
+                    });
                     try {
                         while (true) {
                             Thread.sleep(HEARTBEAT_MILLIS);
@@ -74,6 +85,12 @@ public final class ConnectionService implements AutoCloseable {
                         } catch (IOException ignored) {
                             // Closing the socket also invalidates the server session.
                         }
+                        return;
+                    } catch (java.io.InterruptedIOException exception) {
+                        if (!Thread.currentThread().isInterrupted()) {
+                            throw exception;
+                        }
+                        // Closing the socket releases the reader and any transfer waiters.
                         return;
                     }
                 } catch (IOException exception) {
@@ -98,6 +115,7 @@ public final class ConnectionService implements AutoCloseable {
     private void publish(long attempt, ConnectionState state, String detail) {
         Platform.runLater(() -> {
             if (attempt == generation) {
+                connectedClient = null;
                 status.set(new Status(state, detail));
             }
         });

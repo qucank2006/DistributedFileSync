@@ -11,7 +11,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 
-/** Big-endian length of the body, then one version byte, one type byte and UTF-8 text. */
+/** Big-endian length of the body, then one version byte, one type byte and a type-specific payload. */
 public final class MessageCodec {
     public static final int VERSION = 1;
     public static final int MAX_MESSAGE_BYTES = 1024 * 1024;
@@ -37,6 +37,9 @@ public final class MessageCodec {
             MessageType type = MessageType.fromCode(input.readUnsignedByte());
             byte[] bytes = new byte[length - HEADER_BYTES];
             input.readFully(bytes);
+            if (type.isFileTransfer()) {
+                return new ProtocolMessage(type, bytes);
+            }
             String payload = StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
             validatePayload(type, payload);
             return new ProtocolMessage(type, payload);
@@ -48,6 +51,10 @@ public final class MessageCodec {
     }
 
     public static void write(DataOutputStream output, ProtocolMessage message) throws IOException {
+        if (message.type().isFileTransfer()) {
+            writeFrame(output, message.type(), message.binaryPayload());
+            return;
+        }
         validatePayload(message.type(), message.payload());
         if (message.payload().length() > MAX_MESSAGE_BYTES - HEADER_BYTES) {
             throw new ProtocolException("Message too large");
@@ -58,15 +65,18 @@ public final class MessageCodec {
         } catch (CharacterCodingException exception) {
             throw new ProtocolException("Invalid text payload", exception);
         }
-        int length = HEADER_BYTES + utf8.remaining();
-        if (length > MAX_MESSAGE_BYTES) {
-            throw new ProtocolException("Message too large");
-        }
-        output.writeInt(length);
-        output.writeByte(VERSION);
-        output.writeByte(message.type().code());
         byte[] payload = new byte[utf8.remaining()];
         utf8.get(payload);
+        writeFrame(output, message.type(), payload);
+    }
+
+    private static void writeFrame(DataOutputStream output, MessageType type, byte[] payload) throws IOException {
+        if (payload.length > MAX_MESSAGE_BYTES - HEADER_BYTES) {
+            throw new ProtocolException("Message too large");
+        }
+        output.writeInt(HEADER_BYTES + payload.length);
+        output.writeByte(VERSION);
+        output.writeByte(type.code());
         output.write(payload);
         output.flush();
     }
@@ -77,6 +87,7 @@ public final class MessageCodec {
                 && payload.codePoints().noneMatch(Character::isISOControl);
             case WELCOME, ERROR -> !payload.isBlank();
             case PING, PONG, DISCONNECT -> payload.isEmpty();
+            default -> false;
         };
         if (!valid) {
             throw new ProtocolException("Invalid payload for " + type);

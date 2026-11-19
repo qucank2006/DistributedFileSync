@@ -3,12 +3,19 @@ package com.dacs4.filesync.shared.protocol;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 
 public enum MessageType {
-    HELLO(1), WELCOME(2), PING(3), PONG(4), DISCONNECT(5), ERROR(6);
+    HELLO(1), WELCOME(2), PING(3), PONG(4), DISCONNECT(5), ERROR(6),
+    UPLOAD_INIT(7), UPLOAD_READY(8), FILE_CHUNK(9), UPLOAD_END(10), UPLOAD_RESULT(11),
+    DOWNLOAD_REQUEST(12), DOWNLOAD_INFO(13), DOWNLOAD_END(14), DOWNLOAD_RESULT(15),
+    FILE_LIST_REQUEST(16), FILE_LIST_RESPONSE(17);
 
     private final int code;
 
     MessageType(int code) {
         this.code = code;
+    }
+
+    public boolean isFileTransfer() {
+        return code >= UPLOAD_INIT.code;
     }
 
     int code() {

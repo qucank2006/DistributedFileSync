@@ -23,6 +23,7 @@ public final class ShellController {
 
     private final Map<String, Parent> pages = new HashMap<>();
     private final ConnectionService connection = new ConnectionService();
+    private FilesController filesController;
 
     @FXML private void initialize() throws IOException {
         Views.icon(dashboard, "M1 1h6v6H1z M10 1h6v6h-6z M1 10h6v6H1z M10 10h6v6h-6z");
@@ -37,7 +38,12 @@ public final class ShellController {
             showConflicts();
             conflicts.requestFocus();
         });
-        for (String page : List.of("files", "history", "conflicts")) {
+        FXMLLoader filesLoader = new FXMLLoader(Main.class.getResource("view/files.fxml"));
+        pages.put("files", filesLoader.load());
+        filesController = filesLoader.getController();
+        filesController.bindConnection(connection);
+
+        for (String page : List.of("history", "conflicts")) {
             pages.put(page, FXMLLoader.load(Main.class.getResource("view/" + page + ".fxml")));
         }
         FXMLLoader devicesLoader = new FXMLLoader(Main.class.getResource("view/devices.fxml"));
@@ -57,6 +63,9 @@ public final class ShellController {
     }
 
     public void closeConnection() {
+        if (filesController != null) {
+            filesController.cancelTransferOnClose();
+        }
         connection.close();
     }
 

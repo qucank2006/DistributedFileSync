@@ -2,6 +2,8 @@ package com.dacs4.filesync.server.network;
 
 import com.dacs4.filesync.server.config.ServerConfig;
 import com.dacs4.filesync.server.session.ClientSessionManager;
+import com.dacs4.filesync.server.service.FileStorageService;
+import com.dacs4.filesync.server.service.FileTransferService;
 import com.dacs4.filesync.shared.dto.ClientInfo;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 import com.dacs4.filesync.shared.protocol.MessageCodec;
@@ -19,19 +21,21 @@ public final class ClientHandler implements Runnable, AutoCloseable {
 
     private final Socket socket;
     private final ClientSessionManager sessions;
+    private final FileStorageService storage;
     private volatile long deadline = System.nanoTime()
         + TimeUnit.MILLISECONDS.toNanos(ServerConfig.HANDSHAKE_TIMEOUT_MILLIS);
 
-    ClientHandler(Socket socket, ClientSessionManager sessions) {
+    ClientHandler(Socket socket, ClientSessionManager sessions, FileStorageService storage) {
         this.socket = socket;
         this.sessions = sessions;
+        this.storage = storage;
     }
 
     @Override
     public void run() {
         ClientInfo client = null;
         String remote = socket.getRemoteSocketAddress().toString();
-        try (socket) {
+        try (socket; var transfers = new FileTransferService(storage)) {
             var input = new DataInputStream(socket.getInputStream());
             var output = new DataOutputStream(socket.getOutputStream());
             try {
@@ -52,11 +56,15 @@ public final class ClientHandler implements Runnable, AutoCloseable {
                     if (message.type() == MessageType.DISCONNECT) {
                         break;
                     }
-                    if (message.type() != MessageType.PING) {
-                        throw new ProtocolException("Expected PING or DISCONNECT");
-                    }
                     refreshDeadline();
-                    MessageCodec.write(output, new ProtocolMessage(MessageType.PONG));
+                    if (message.type() == MessageType.PING) {
+                        transfers.expireIfIdle();
+                        MessageCodec.write(output, new ProtocolMessage(MessageType.PONG));
+                    } else if (message.type().isFileTransfer()) {
+                        MessageCodec.write(output, transfers.handle(message));
+                    } else {
+                        throw new ProtocolException("Unexpected message from client");
+                    }
                 }
             } catch (ProtocolException exception) {
                 LOG.log(System.Logger.Level.WARNING, "Protocol error from {0}: {1}", remote, exception.getMessage());

@@ -22,7 +22,7 @@
             <Region VBox.vgrow="ALWAYS"/>
             <VBox spacing="5" styleClass="sidebar-note">
                 <Label text="BẢN MẪU" styleClass="eyebrow"/>
-                <Label text="Dữ liệu tệp và thiết bị là dữ liệu minh họa." wrapText="true" styleClass="muted-text"/>
+                <Label text="Danh sách tệp máy chủ dùng dữ liệu thật. Các số liệu khác là minh họa." wrapText="true" styleClass="muted-text"/>
             </VBox>
         </VBox>
     </left>

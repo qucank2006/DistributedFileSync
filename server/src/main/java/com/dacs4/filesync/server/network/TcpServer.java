@@ -2,6 +2,7 @@ package com.dacs4.filesync.server.network;
 
 import com.dacs4.filesync.server.config.ServerConfig;
 import com.dacs4.filesync.server.service.HeartbeatMonitor;
+import com.dacs4.filesync.server.service.FileStorageService;
 import com.dacs4.filesync.server.session.ClientSessionManager;
 
 import java.io.IOException;
@@ -18,11 +19,13 @@ public final class TcpServer implements AutoCloseable {
     private static final System.Logger LOG = System.getLogger(TcpServer.class.getName());
 
     private final ServerSocket listener;
+    private final FileStorageService storage;
     private final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
     private final Set<ClientHandler> connections = ConcurrentHashMap.newKeySet();
     private final ClientSessionManager sessions = new ClientSessionManager();
 
     public TcpServer(ServerConfig config) throws IOException {
+        storage = new FileStorageService(config.storageRoot(), config.maxFileBytes());
         listener = new ServerSocket();
         try {
             listener.bind(new InetSocketAddress(config.host(), config.port()));
@@ -51,7 +54,7 @@ public final class TcpServer implements AutoCloseable {
             socket.close();
             return;
         }
-        ClientHandler handler = new ClientHandler(socket, sessions);
+        ClientHandler handler = new ClientHandler(socket, sessions, storage);
         connections.add(handler);
         workers.execute(() -> {
             try {
