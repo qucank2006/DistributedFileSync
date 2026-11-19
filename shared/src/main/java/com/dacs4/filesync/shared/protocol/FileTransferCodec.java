@@ -1,5 +1,6 @@
 package com.dacs4.filesync.shared.protocol;
 
+import com.dacs4.filesync.shared.dto.FileChangeNotification;
 import com.dacs4.filesync.shared.dto.FileMetadata;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 
@@ -8,13 +9,17 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /** Transfer envelope: request UUID, transfer UUID (zero for list), then the type-specific bytes. */
 public final class FileTransferCodec {
+    /** Optional suffix in the Phase 1 HELLO client name. */
+    public static final String FILE_CHANGED_CAPABILITY = ";file-changed=1";
     public static final UUID NONE = new UUID(0, 0);
     public static final int CHUNK_BYTES = 64 * 1024;
     public static final int HASH_BYTES = 32;
@@ -63,6 +68,72 @@ public final class FileTransferCodec {
         byte[] data = new byte[bytes.remaining()];
         bytes.get(data);
         return new Packet(message.type(), request, transfer, data);
+    }
+
+    /** Push messages have no request/transfer envelope. */
+    public static ProtocolMessage encodeNotification(FileChangeNotification notification) throws IOException {
+        if (!validName(notification.relativePath()) || NONE.equals(notification.eventId())
+                || NONE.equals(notification.originSessionId())
+                || notification.metadata().filter(file -> file.size() < 0).isPresent()) {
+            throw new ProtocolException("Invalid file change notification");
+        }
+        byte[] payload = body(output -> {
+            writeUuid(output, notification.eventId());
+            output.writeByte(switch (notification.type()) {
+                case CREATE -> 1;
+                case MODIFY -> 2;
+                case DELETE -> 3;
+            });
+            writeText(output, notification.relativePath());
+            output.writeLong(notification.timestamp().toEpochMilli());
+            writeUuid(output, notification.originSessionId());
+            output.writeBoolean(notification.metadata().isPresent());
+            if (notification.metadata().isPresent()) {
+                writeMetadata(output, notification.metadata().get());
+            }
+        });
+        return new ProtocolMessage(MessageType.FILE_CHANGED, payload);
+    }
+
+    public static FileChangeNotification decodeNotification(ProtocolMessage message) throws IOException {
+        if (message.type() != MessageType.FILE_CHANGED || message.binaryPayload().length > 1024) {
+            throw new ProtocolException("Invalid file change notification");
+        }
+        var input = new DataInputStream(new ByteArrayInputStream(message.binaryPayload()));
+        try {
+            UUID eventId = readUuid(input);
+            var type = switch (input.readUnsignedByte()) {
+                case 1 -> FileChangeNotification.Type.CREATE;
+                case 2 -> FileChangeNotification.Type.MODIFY;
+                case 3 -> FileChangeNotification.Type.DELETE;
+                default -> throw new ProtocolException("Unknown file change type");
+            };
+            String path = readText(input);
+            Instant timestamp = Instant.ofEpochMilli(input.readLong());
+            UUID origin = readUuid(input);
+            Optional<FileMetadata> metadata = switch (input.readUnsignedByte()) {
+                case 0 -> Optional.empty();
+                case 1 -> Optional.of(readMetadata(input));
+                default -> throw new ProtocolException("Invalid notification metadata flag");
+            };
+            requireEnd(input);
+            if (!validName(path) || NONE.equals(eventId) || NONE.equals(origin)
+                    || metadata.filter(file -> !path.equals(file.name())).isPresent()) {
+                throw new ProtocolException("Invalid file change notification");
+            }
+            return new FileChangeNotification(eventId, type, path, timestamp, origin, metadata);
+        } catch (EOFException | java.nio.charset.CharacterCodingException exception) {
+            throw new ProtocolException("Malformed file change notification", exception);
+        }
+    }
+
+    private static void writeUuid(DataOutputStream output, UUID id) throws IOException {
+        output.writeLong(id.getMostSignificantBits());
+        output.writeLong(id.getLeastSignificantBits());
+    }
+
+    private static UUID readUuid(DataInputStream input) throws IOException {
+        return new UUID(input.readLong(), input.readLong());
     }
 
     public static void writeText(DataOutputStream output, String text) throws IOException {

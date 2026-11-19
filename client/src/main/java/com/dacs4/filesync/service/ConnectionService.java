@@ -2,6 +2,7 @@ package com.dacs4.filesync.service;
 
 import com.dacs4.filesync.network.ConnectionState;
 import com.dacs4.filesync.network.TcpClient;
+import com.dacs4.filesync.shared.dto.FileChangeNotification;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -15,6 +16,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /** Public lifecycle methods and observable state belong to the JavaFX application thread. */
 public final class ConnectionService implements AutoCloseable {
@@ -29,6 +32,7 @@ public final class ConnectionService implements AutoCloseable {
         Thread.ofVirtual().name("tcp-client").factory());
     private Future<?> task;
     private TcpClient connectedClient;
+    private Consumer<FileChangeNotification> fileChangeListener;
     private long generation;
     private boolean closed;
 
@@ -38,6 +42,10 @@ public final class ConnectionService implements AutoCloseable {
 
     public TcpClient connectedClient() {
         return connectedClient;
+    }
+
+    public void setFileChangeListener(Consumer<FileChangeNotification> listener) {
+        fileChangeListener = listener;
     }
 
     public void connect(String address, int port) {
@@ -65,7 +73,18 @@ public final class ConnectionService implements AutoCloseable {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 try (var client = new TcpClient()) {
-                    UUID session = client.connect(address, port, "DistributedFileSync");
+                    // The Files screen only needs an invalidation. Keep one queued JavaFX callback per socket.
+                    AtomicBoolean notificationQueued = new AtomicBoolean();
+                    UUID session = client.connect(address, port, "DistributedFileSync", notification -> {
+                        if (notificationQueued.compareAndSet(false, true)) {
+                            Platform.runLater(() -> {
+                                notificationQueued.set(false);
+                                if (attempt == generation && client == connectedClient && fileChangeListener != null) {
+                                    fileChangeListener.accept(notification);
+                                }
+                            });
+                        }
+                    });
                     wasConnected = true;
                     Platform.runLater(() -> {
                         if (attempt == generation) {
@@ -134,6 +153,7 @@ public final class ConnectionService implements AutoCloseable {
     @Override
     public void close() {
         closed = true;
+        fileChangeListener = null;
         disconnect();
         worker.shutdownNow();
     }

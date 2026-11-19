@@ -1,5 +1,6 @@
 package com.dacs4.filesync.network;
 
+import com.dacs4.filesync.shared.dto.FileChangeNotification;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 import com.dacs4.filesync.shared.protocol.FileTransferCodec;
 import com.dacs4.filesync.shared.protocol.FileTransferCodec.Packet;
@@ -14,6 +15,7 @@ import java.net.SocketTimeoutException;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /** Owns the sole reader and serializes all outgoing frames for one TCP session. */
 public final class TcpClient implements AutoCloseable {
@@ -35,12 +37,18 @@ public final class TcpClient implements AutoCloseable {
     private volatile DataOutputStream output;
 
     public UUID connect(String address, int port, String name) throws IOException {
+        return connect(address, port, name, null);
+    }
+
+    public UUID connect(String address, int port, String name,
+                        Consumer<FileChangeNotification> fileChanges) throws IOException {
         socket.connect(new InetSocketAddress(address, port), CONNECT_MILLIS);
         socket.setTcpNoDelay(true);
         output = new DataOutputStream(socket.getOutputStream());
         DataInputStream input = new DataInputStream(socket.getInputStream());
-        Thread.ofVirtual().name("tcp-client-reader").start(() -> readLoop(input));
-        send(new ProtocolMessage(MessageType.HELLO, name));
+        Thread.ofVirtual().name("tcp-client-reader").start(() -> readLoop(input, fileChanges));
+        String hello = fileChanges == null ? name : name + FileTransferCodec.FILE_CHANGED_CAPABILITY;
+        send(new ProtocolMessage(MessageType.HELLO, hello));
         String id = await(welcome, CONNECT_MILLIS);
         try {
             UUID session = UUID.fromString(id);
@@ -130,13 +138,13 @@ public final class TcpClient implements AutoCloseable {
         }
     }
 
-    private void readLoop(DataInputStream input) {
+    private void readLoop(DataInputStream input, Consumer<FileChangeNotification> fileChanges) {
         try {
             for (ProtocolMessage message; (message = MessageCodec.read(input)) != null;) {
                 if (message.type() == MessageType.DISCONNECT) {
                     break;
                 }
-                dispatch(message);
+                dispatch(message, fileChanges);
             }
             fail(new EOFException("Server closed the connection"));
         } catch (IOException exception) {
@@ -148,7 +156,8 @@ public final class TcpClient implements AutoCloseable {
         }
     }
 
-    private void dispatch(ProtocolMessage message) throws IOException {
+    private void dispatch(ProtocolMessage message, Consumer<FileChangeNotification> fileChanges)
+            throws IOException {
         if (message.type() == MessageType.ERROR) {
             throw new ProtocolException("Server rejected the protocol message");
         }
@@ -162,6 +171,11 @@ public final class TcpClient implements AutoCloseable {
             if (reply == null || !reply.complete(null)) {
                 throw new ProtocolException("Unexpected PONG");
             }
+        } else if (message.type() == MessageType.FILE_CHANGED) {
+            if (fileChanges == null) {
+                throw new ProtocolException("File notifications were not requested in HELLO");
+            }
+            fileChanges.accept(FileTransferCodec.decodeNotification(message));
         } else if (message.type().isFileTransfer()) {
             Packet packet = FileTransferCodec.decode(message);
             var reply = replies.get(packet.requestId());

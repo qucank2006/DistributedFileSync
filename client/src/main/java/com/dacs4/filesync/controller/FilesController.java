@@ -7,6 +7,8 @@ import com.dacs4.filesync.service.FileService;
 import com.dacs4.filesync.shared.dto.FileMetadata;
 import com.dacs4.filesync.shared.exception.ProtocolException;
 import com.dacs4.filesync.util.Views;
+import javafx.animation.Animation;
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +17,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 import java.net.SocketTimeoutException;
 import java.nio.file.FileAlreadyExistsException;
@@ -38,6 +41,7 @@ public final class FilesController {
     private ConnectionService connection;
     private FileService transfers;
     private boolean refreshPending;
+    private final PauseTransition notificationRefresh = new PauseTransition(Duration.millis(350));
 
     @FXML private void initialize() {
         Views.table(files, "Kết nối máy chủ để xem danh sách tệp.");
@@ -81,7 +85,14 @@ public final class FilesController {
         transferProgress.progressProperty().bind(transfers.progressProperty());
         transferProgress.visibleProperty().bind(transfers.busyProperty());
         transferProgress.managedProperty().bind(transferProgress.visibleProperty());
+        notificationRefresh.setOnFinished(event -> refresh());
+        service.setFileChangeListener(notification -> {
+            if (notificationRefresh.getStatus() != Animation.Status.RUNNING) {
+                notificationRefresh.playFromStart();
+            }
+        });
         status.addListener((observable, before, after) -> {
+            notificationRefresh.stop();
             if (after.state() == ConnectionState.CONNECTED) {
                 refresh();
             } else {
@@ -94,8 +105,16 @@ public final class FilesController {
     }
 
     void cancelTransferOnClose() {
+        notificationRefresh.stop();
         if (transfers != null) {
             transfers.cancel();
+        }
+    }
+
+    void refreshNotificationsOnOpen() {
+        if (notificationRefresh.getStatus() == Animation.Status.RUNNING) {
+            notificationRefresh.stop();
+            refresh();
         }
     }
 
@@ -127,8 +146,15 @@ public final class FilesController {
         refreshPending = false;
         transfers.list(result -> {
             if (session == connection.connectedClient()) {
-                serverFiles.setAll(result);
-                updateCount();
+                if (!serverFiles.equals(result)) {
+                    FileMetadata selected = files.getSelectionModel().getSelectedItem();
+                    serverFiles.setAll(result);
+                    if (selected != null) {
+                        filtered.stream().filter(file -> file.name().equals(selected.name())).findFirst()
+                            .ifPresent(files.getSelectionModel()::select);
+                    }
+                    updateCount();
+                }
                 files.setPlaceholder(new Label("Không có tệp máy chủ phù hợp."));
             }
             refreshIfPending();

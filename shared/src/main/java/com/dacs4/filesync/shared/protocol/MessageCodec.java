@@ -37,7 +37,7 @@ public final class MessageCodec {
             MessageType type = MessageType.fromCode(input.readUnsignedByte());
             byte[] bytes = new byte[length - HEADER_BYTES];
             input.readFully(bytes);
-            if (type.isFileTransfer()) {
+            if (type.isBinary()) {
                 return new ProtocolMessage(type, bytes);
             }
             String payload = StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
@@ -51,7 +51,7 @@ public final class MessageCodec {
     }
 
     public static void write(DataOutputStream output, ProtocolMessage message) throws IOException {
-        if (message.type().isFileTransfer()) {
+        if (message.type().isBinary()) {
             writeFrame(output, message.type(), message.binaryPayload());
             return;
         }

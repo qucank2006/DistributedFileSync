@@ -10,6 +10,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.dacs4.filesync.shared.protocol.FileTransferCodec.*;
 import static com.dacs4.filesync.shared.protocol.MessageType.*;
@@ -21,6 +22,7 @@ public final class FileTransferService implements AutoCloseable {
     private static final byte[] EMPTY = new byte[0];
 
     private final FileStorageService storage;
+    private final Consumer<Path> uploadCommitted;
     private UUID transfer;
     private long lastActivity;
     private long remaining;
@@ -31,8 +33,9 @@ public final class FileTransferService implements AutoCloseable {
     private OutputStream upload;
     private InputStream download;
 
-    public FileTransferService(FileStorageService storage) {
+    public FileTransferService(FileStorageService storage, Consumer<Path> uploadCommitted) {
         this.storage = storage;
+        this.uploadCommitted = uploadCommitted;
     }
 
     public ProtocolMessage handle(ProtocolMessage message) throws IOException {
@@ -166,6 +169,7 @@ public final class FileTransferService implements AutoCloseable {
             upload = null;
             storage.commit(temporary, target);
             temporary = null;
+            uploadCommitted.accept(target);
         }
         close();
         return reply(packet, UPLOAD_RESULT, result(null));

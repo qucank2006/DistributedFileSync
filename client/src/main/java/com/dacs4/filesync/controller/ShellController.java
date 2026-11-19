@@ -70,7 +70,10 @@ public final class ShellController {
     }
 
     @FXML private void showDashboard() { show("dashboard", dashboard); }
-    @FXML private void showFiles() { show("files", files); }
+    @FXML private void showFiles() {
+        show("files", files);
+        filesController.refreshNotificationsOnOpen();
+    }
     @FXML private void showHistory() { show("history", history); }
     @FXML private void showConflicts() { show("conflicts", conflicts); }
     @FXML private void showDevices() { show("devices", devices); }
