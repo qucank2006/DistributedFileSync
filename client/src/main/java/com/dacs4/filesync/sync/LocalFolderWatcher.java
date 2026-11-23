@@ -1,5 +1,8 @@
 package com.dacs4.filesync.sync;
 
+import com.dacs4.filesync.shared.logging.AppLogging.WarningLimiter;
+import com.dacs4.filesync.shared.protocol.FileTransferCodec.SafeRoot;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -14,6 +17,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 public final class LocalFolderWatcher implements AutoCloseable {
     private static final System.Logger LOG = System.getLogger(LocalFolderWatcher.class.getName());
+    private final WarningLimiter overflowLog = new WarningLimiter();
 
     private final Path configuredRoot;
     private final Consumer<FileChangeEvent> listener;
@@ -57,10 +61,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
 
     private void watch() {
         try (WatchService service = configuredRoot.getFileSystem().newWatchService()) {
-            if (Files.isSymbolicLink(configuredRoot)) {
-                throw new IOException("The sync root cannot be a symbolic link");
-            }
-            Path directory = Files.createDirectories(configuredRoot).toRealPath();
+            Path directory = new SafeRoot(configuredRoot).path();
             synchronized (this) {
                 if (!running()) {
                     return;
@@ -72,7 +73,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
             Thread.currentThread().interrupt();
         } catch (IOException | RuntimeException exception) {
             if (running()) {
-                LOG.log(System.Logger.Level.ERROR, "Local watcher stopped: " + configuredRoot, exception);
+                LOG.log(System.Logger.Level.ERROR, "Local sync watcher stopped", exception);
             }
         } finally {
             synchronized (this) {
@@ -123,7 +124,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
         }
     }
 
-    private static boolean ignored(Path path) {
+    static boolean ignored(Path path) {
         String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
         return name.endsWith(".part") || name.endsWith(".tmp") || name.endsWith(".swp")
             || name.endsWith(".crdownload") || name.startsWith(".download-")
@@ -145,7 +146,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
         void run() throws IOException, InterruptedException {
             boolean retry = rescan(false);
             if (running()) {
-                LOG.log(System.Logger.Level.INFO, "Watching local sync folder {0}", directory);
+                LOG.log(System.Logger.Level.DEBUG, "Local sync watcher ready");
             }
             long nextRetry = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
             while (running()) {
@@ -159,7 +160,9 @@ public final class LocalFolderWatcher implements AutoCloseable {
                                 return;
                             }
                             if (event.kind() == OVERFLOW) {
-                                LOG.log(System.Logger.Level.WARNING, "Watch event overflow; rescanning {0}", directory);
+                                if (overflowLog.allow()) {
+                                    LOG.log(System.Logger.Level.WARNING, "Local watch queue overflow; rescanning");
+                                }
                                 scan = true;
                             } else if (event.context() instanceof Path child) {
                                 scan |= update(parent.resolve(child).normalize(), event.kind());
@@ -199,7 +202,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
                 }
                 return false;
             } catch (IOException exception) {
-                LOG.log(System.Logger.Level.DEBUG, "Could not inspect " + path, exception);
+                LOG.log(System.Logger.Level.DEBUG, "Could not inspect changed sync path", exception);
                 return true;
             }
         }
@@ -216,7 +219,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
                 // An absent root is retried and any previously known files are reported deleted.
             } catch (IOException exception) {
                 uncertain.add(directory);
-                LOG.log(System.Logger.Level.DEBUG, "Could not inspect sync root " + directory, exception);
+                LOG.log(System.Logger.Level.DEBUG, "Could not inspect sync root", exception);
             }
             if (scanRoot) {
                 Files.walkFileTree(directory, new SimpleFileVisitor<>() {
@@ -233,7 +236,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
                             register(path);
                         } catch (IOException exception) {
                             uncertain.add(path);
-                            LOG.log(System.Logger.Level.DEBUG, "Could not watch " + path, exception);
+                            LOG.log(System.Logger.Level.DEBUG, "Could not register sync subdirectory", exception);
                         }
                         return FileVisitResult.CONTINUE;
                     }
@@ -253,7 +256,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
                     public FileVisitResult visitFileFailed(Path path, IOException exception) {
                         if (!(exception instanceof NoSuchFileException)) {
                             uncertain.add(path);
-                            LOG.log(System.Logger.Level.DEBUG, "Could not scan " + path, exception);
+                            LOG.log(System.Logger.Level.DEBUG, "Could not scan sync path", exception);
                         }
                         return running() ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
                     }
@@ -262,7 +265,7 @@ public final class LocalFolderWatcher implements AutoCloseable {
                     public FileVisitResult postVisitDirectory(Path path, IOException exception) {
                         if (exception != null && !(exception instanceof NoSuchFileException)) {
                             uncertain.add(path);
-                            LOG.log(System.Logger.Level.DEBUG, "Could not finish scanning " + path, exception);
+                            LOG.log(System.Logger.Level.DEBUG, "Could not finish scanning sync subdirectory", exception);
                         }
                         return running() ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
                     }

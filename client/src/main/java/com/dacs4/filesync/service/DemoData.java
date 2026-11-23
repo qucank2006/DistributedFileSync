@@ -5,7 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.dacs4.filesync.model.DemoRecords.SyncStatus.*;
 
@@ -46,19 +45,6 @@ public final class DemoData {
             new Version("v3", "19/11/2026 09:41", SERVER, "142 KB", "fc893c139107…"))
     );
 
-    private static final Map<FileItem, List<Version>> HISTORIES = Map.of(
-        FILES.get(0), List.of(
-            new Version("v3", "19/11/2026 09:12", SERVER, "801 KB", "09cb3c821e109e8ed1f9b2a9d30494864293c621e6d65906f03dfb7674789392"),
-            new Version("v2", "18/11/2026 14:10", LAPTOP, "760 KB", "5ceb52a9f631c9d27bf4745676c3312fad46a6baa3ed135eb46892478ca7e86a"),
-            new Version("v1", "17/11/2026 16:35", LAPTOP, "697 KB", "172b53e1a49cde06dbccb54764bbb97492de718cdca5ac9ce5c0f3b11e1f1f74")),
-        FILES.get(1), List.of(
-            new Version("v2", "18/11/2026 14:30", STUDIO, "130 KB", "fa410a7be73be1ec7d9e33ec48651623de8061683fdff4f40bb20dde77693d8f"),
-            new Version("v1", "17/11/2026 11:21", SERVER, "116 KB", "5facb871da70ecba571c025687cb17c1baaedca4c2350d5aee1064776a2f4965")),
-        FILES.get(2), List.of(
-            new Version("v2", "19/11/2026 09:40", STUDIO, "1,8 MB", "239beaeb922a1be6834e5212b25544bcdfb0d3566f4f46e314624da80859f1fb"),
-            new Version("v1", "18/11/2026 16:24", STUDIO, "1,6 MB", "bd7210c6ca31f13eb16dcaf463e8ac4e7627c94d7d5a931a2cf18634419c4776"))
-    );
-
     private static final List<Activity> ACTIVITIES = List.of(
         new Activity("09:48", "Phát hiện xung đột ở Bao-cao-DACS4.docx", LAPTOP),
         new Activity("09:43", "Phát hiện xung đột ở Ke-hoach-tuan.xlsx", STUDIO),
@@ -70,11 +56,6 @@ public final class DemoData {
     public ObservableList<Device> devices() { return FXCollections.observableArrayList(DEVICES); }
     public ObservableList<Conflict> conflicts() { return FXCollections.observableArrayList(CONFLICTS); }
     public ObservableList<Activity> activities() { return FXCollections.observableArrayList(ACTIVITIES); }
-
-    public ObservableList<Version> versions(FileItem file) {
-        return FXCollections.observableArrayList(
-            file == null ? List.of() : HISTORIES.getOrDefault(file, List.of()));
-    }
 
     public long fileCount(SyncStatus status) {
         return FILES.stream().filter(file -> file.status() == status).count();

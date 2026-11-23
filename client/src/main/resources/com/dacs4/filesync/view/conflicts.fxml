@@ -4,61 +4,49 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.ConflictsController" spacing="16" styleClass="page">
-    <Label text="So sánh hai phiên bản của tệp trước khi chọn cách xử lý." styleClass="muted-text"/>
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <fx:define><ComboBox fx:id="conflict" prefWidth="360" maxWidth="Infinity" HBox.hgrow="ALWAYS"/></fx:define>
+        <fx:define><ComboBox fx:id="conflict" promptText="Chọn xung đột" prefWidth="360" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/></fx:define>
         <Label text="Tệp xung đột" labelFor="$conflict"/>
         <fx:reference source="conflict"/>
+        <Button fx:id="compare" onAction="#compare" text="So sánh" styleClass="primary" disable="true"/>
     </HBox>
+    <Label fx:id="compareAvailability" wrapText="true" styleClass="muted-text"/>
+    <Label fx:id="emptyState" text="Chưa ghi nhận xung đột." styleClass="muted-text"/>
+    <ScrollPane fx:id="details" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" styleClass="details-scroll">
+    <VBox spacing="16">
+    <VBox spacing="8">
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <fx:define><TextField fx:id="path" editable="false" minWidth="0" styleClass="readout" HBox.hgrow="ALWAYS"/></fx:define>
+            <Label text="Đường dẫn" labelFor="$path"/>
+            <fx:reference source="path"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label fx:id="type" wrapText="true"/>
+            <Label fx:id="status" styleClass="badge,warning"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Phát hiện lúc" styleClass="muted-text"/>
+            <Label fx:id="detectedAt"/>
+        </HBox>
+    </VBox>
     <HBox spacing="12">
         <VBox spacing="10" styleClass="card" HBox.hgrow="ALWAYS" prefWidth="0" minWidth="0" maxWidth="Infinity">
             <Label text="Bản cục bộ" styleClass="section-title"/>
-            <Label fx:id="localVersion" styleClass="badge,info"/>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Sửa đổi" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="localTime"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Thiết bị" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="localDevice"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Dung lượng" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="localSize"/>
-            </HBox>
+            <Label text="SHA-256 cục bộ" styleClass="muted-text"/>
+            <TextArea fx:id="localHash" accessibleText="SHA-256 cục bộ" editable="false" minWidth="0" prefRowCount="2" wrapText="true"
+                       promptText="Chưa xác định" styleClass="readout"/>
         </VBox>
         <VBox spacing="10" styleClass="card" HBox.hgrow="ALWAYS" prefWidth="0" minWidth="0" maxWidth="Infinity">
             <Label text="Bản máy chủ" styleClass="section-title"/>
-            <Label fx:id="serverVersion" styleClass="badge,info"/>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Sửa đổi" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="serverTime"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Thiết bị" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="serverDevice"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Dung lượng" styleClass="muted-text"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="serverSize"/>
-            </HBox>
+            <Label text="SHA-256 bản gốc dự kiến" styleClass="muted-text"/>
+            <TextArea fx:id="expectedHash" accessibleText="SHA-256 bản gốc dự kiến" editable="false" minWidth="0" prefRowCount="2" wrapText="true"
+                       promptText="Chưa xác định" styleClass="readout"/>
+            <Label text="SHA-256 máy chủ đã báo" styleClass="muted-text"/>
+            <TextArea fx:id="serverHash" accessibleText="SHA-256 máy chủ đã báo" editable="false" minWidth="0" prefRowCount="2" wrapText="true"
+                       promptText="Chưa xác định" styleClass="readout"/>
         </VBox>
     </HBox>
-    <VBox spacing="6">
-        <Label text="Giữ bản cục bộ · Chỉ giữ phiên bản trên thiết bị này." wrapText="true" styleClass="muted-text"/>
-        <Label text="Giữ bản máy chủ · Chỉ giữ phiên bản trên máy chủ." wrapText="true" styleClass="muted-text"/>
-        <Label text="Giữ cả hai · Giữ hai phiên bản dưới dạng hai bản riêng." wrapText="true" styleClass="muted-text"/>
+    <Label fx:id="explanation" wrapText="true"/>
     </VBox>
-    <HBox spacing="8" alignment="CENTER_RIGHT">
-        <Button fx:id="keepLocalButton" text="Giữ bản cục bộ" onAction="#keepLocal"/>
-        <Button fx:id="keepServerButton" text="Giữ bản máy chủ" onAction="#keepServer"/>
-        <Button fx:id="keepBothButton" text="Giữ cả hai" onAction="#keepBoth"/>
-    </HBox>
-    <Label fx:id="preview" text="Chưa chọn tệp xung đột." wrapText="true" styleClass="muted-text"/>
+    </ScrollPane>
 </VBox>

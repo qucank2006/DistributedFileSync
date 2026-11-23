@@ -22,7 +22,9 @@ public final class TcpServer implements AutoCloseable {
     private final ServerSocket listener;
     private final FileStorageService storage;
     private final FileNotificationService notifications;
-    private final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService workers = Executors.newThreadPerTaskExecutor(
+        Thread.ofVirtual().uncaughtExceptionHandler((thread, error) ->
+            LOG.log(System.Logger.Level.ERROR, "Client handler failed unexpectedly", error)).factory());
     private final Set<ClientHandler> connections = ConcurrentHashMap.newKeySet();
     private final ClientSessionManager sessions = new ClientSessionManager();
 
@@ -39,7 +41,7 @@ public final class TcpServer implements AutoCloseable {
     }
 
     public void serve() throws IOException {
-        LOG.log(System.Logger.Level.INFO, "Listening on {0}", listener.getLocalSocketAddress());
+        LOG.log(System.Logger.Level.INFO, "Server started on " + listener.getLocalSocketAddress());
         try (var monitor = new HeartbeatMonitor(connections)) {
             while (!listener.isClosed()) {
                 Socket socket = listener.accept();
@@ -82,10 +84,17 @@ public final class TcpServer implements AutoCloseable {
         try {
             if (!workers.awaitTermination(5, TimeUnit.SECONDS)) {
                 workers.shutdownNow();
+                if (!workers.awaitTermination(5, TimeUnit.SECONDS)) {
+                    LOG.log(System.Logger.Level.WARNING, "Storage remains in use by server workers");
+                    return;
+                }
             }
+            storage.close();
         } catch (InterruptedException exception) {
             workers.shutdownNow();
             Thread.currentThread().interrupt();
+        } catch (IOException exception) {
+            LOG.log(System.Logger.Level.WARNING, "Version storage close failed", exception);
         }
     }
 }

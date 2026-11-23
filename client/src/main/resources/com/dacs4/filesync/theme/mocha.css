@@ -33,8 +33,6 @@
     -fx-font-weight: bold;
 }
 .brand-name { -fx-font-size: 14px; -fx-font-weight: bold; }
-.eyebrow { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -mocha-mauve; -fx-padding: 0 0 3 4; }
-.sidebar-note { -fx-background-color: -mocha-base; -fx-background-radius: 10; -fx-padding: 11; }
 .header {
     -fx-padding: 18 24;
     -fx-background-color: -mocha-mantle;
@@ -66,6 +64,8 @@
 .button { -fx-padding: 6 12; -fx-text-fill: -mocha-text; -fx-cursor: hand; }
 .button:hover, .combo-box:hover { -fx-background-color: #45475a; }
 .button:focused, .combo-box:focused, .text-field:focused { -fx-border-color: -mocha-blue; }
+.button:disabled { -fx-opacity: 0.52; -fx-cursor: default; }
+.button.action-width { -fx-min-width: 105px; }
 .button.primary { -fx-background-color: -mocha-blue; -fx-text-fill: -mocha-mantle; -fx-font-weight: bold; }
 .button.primary:hover { -fx-background-color: #a7c5fb; }
 .button.nav-button { -fx-background-color: transparent; -fx-alignment: center-left; -fx-graphic-text-gap: 10; -fx-padding: 10; }
@@ -77,8 +77,27 @@
 .text-field.server-field { -fx-background-color: -mocha-mantle; -fx-border-color: #585b70; }
 .text-field.server-field:invalid { -fx-border-color: -mocha-red; }
 .text-field.server-field:focused { -fx-border-color: -mocha-blue; }
+.text-field.server-field:invalid:focused {
+    -fx-border-color: -mocha-red, -mocha-blue;
+    -fx-border-insets: 0, 2;
+    -fx-border-radius: 8, 6;
+}
+.text-field.readout { -fx-background-color: -mocha-mantle; -fx-font-family: "Consolas"; }
+.text-area.readout {
+    -fx-background-color: -mocha-mantle;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-radius: 8;
+    -fx-font-family: "Consolas";
+    -fx-text-fill: -mocha-text;
+    -fx-prompt-text-fill: -mocha-muted;
+}
+.text-area.readout .content { -fx-background-color: -mocha-mantle; -fx-background-radius: 8; }
+.text-area.readout:focused { -fx-border-color: -mocha-blue; }
 .combo-box .list-cell { -fx-text-fill: -mocha-text; }
 .combo-box-popup .list-view { -fx-background-color: -mocha-surface; }
+.tooltip { -fx-background-color: -mocha-surface; -fx-text-fill: -mocha-text; -fx-padding: 8 10; }
+.details-scroll, .details-scroll > .viewport { -fx-background-color: transparent; }
 
 .table-view {
     -fx-background-color: -mocha-mantle;
@@ -86,8 +105,10 @@
     -fx-border-radius: 10;
     -fx-border-color: -mocha-surface;
     -fx-padding: 4;
-    -fx-fixed-cell-size: 38px;
+    -fx-fixed-cell-size: 34px;
 }
+.table-view:focused { -fx-border-color: -mocha-blue; }
+.table-view .placeholder .label { -fx-text-fill: -mocha-muted; }
 .table-view .column-header-background {
     -fx-background-color: -mocha-surface;
     -fx-background-radius: 6 6 0 0;
@@ -95,6 +116,7 @@
 .table-view .column-header, .table-view .filler { -fx-background-color: transparent; -fx-size: 36px; }
 .table-view .column-header .label { -fx-alignment: center-left; -fx-padding: 0 8; -fx-text-fill: -mocha-muted; }
 .table-row-cell { -fx-table-cell-border-color: transparent; }
+.table-row-cell:empty { -fx-background-color: -mocha-mantle; }
 .table-row-cell:filled:hover { -fx-background-color: #292b40; }
 .table-row-cell:filled:selected { -fx-background-color: #3b4160; }
 .table-cell { -fx-padding: 0 8; -fx-alignment: center-left; -fx-text-fill: -mocha-text; }
@@ -107,3 +129,14 @@
 .dialog-pane .header-panel { -fx-background-color: -mocha-surface; -fx-background-radius: 8; }
 .dialog-pane .header-panel .label { -fx-font-weight: bold; -fx-font-size: 15px; }
 .dialog-pane .content.label { -fx-wrap-text: true; }
+.diff-content { -fx-padding: 10 6 4; }
+.text-area.readout.diff-hash { -fx-font-size: 12px; }
+.diff-table { -fx-fixed-cell-size: 28px; }
+.diff-table .table-cell.diff-code { -fx-font-family: "Consolas"; }
+.diff-table .table-row-cell:diff-added { -fx-background-color: #273b37; }
+.diff-table .table-row-cell:diff-removed { -fx-background-color: #43303e; }
+.diff-table .table-row-cell:diff-modified { -fx-background-color: #40382f; }
+.diff-table .table-row-cell:filled:selected { -fx-background-color: #3b4160; }
+.diff-table .table-row-cell:diff-added:filled:selected { -fx-background-color: #36564a; }
+.diff-table .table-row-cell:diff-removed:filled:selected { -fx-background-color: #654654; }
+.diff-table .table-row-cell:diff-modified:filled:selected { -fx-background-color: #605037; }

@@ -6,15 +6,21 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.FilesController" spacing="16" styleClass="page">
     <Label text="Tệp trên máy chủ" styleClass="section-title"/>
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <TextField fx:id="search" accessibleText="Tìm theo tên tệp" promptText="Tìm theo tên tệp…" HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="search" accessibleText="Tìm theo tên hoặc đường dẫn" promptText="Tìm theo tên hoặc đường dẫn…" HBox.hgrow="ALWAYS"/>
         <Button fx:id="clearFilters" text="Xóa tìm kiếm" onAction="#clearFilters"/>
         <Button fx:id="refresh" text="Làm mới" onAction="#refresh"/>
         <Button fx:id="upload" text="Tải lên" onAction="#upload" styleClass="primary"/>
     </HBox>
     <TableView fx:id="files" VBox.vgrow="ALWAYS" minHeight="140"/>
+    <HBox fx:id="pathRow" spacing="8" alignment="CENTER_LEFT">
+        <fx:define><TextField fx:id="selectedPath" editable="false" minWidth="0" styleClass="readout" HBox.hgrow="ALWAYS"/></fx:define>
+        <Label text="Đường dẫn" labelFor="$selectedPath"/>
+        <fx:reference source="selectedPath"/>
+    </HBox>
     <HBox spacing="8" alignment="CENTER_LEFT">
         <Label fx:id="count" styleClass="muted-text"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="openVersionHistory" text="Lịch sử phiên bản" onAction="#openVersionHistory"/>
         <Button fx:id="cancel" text="Hủy truyền tệp" onAction="#cancel"/>
         <Button fx:id="download" text="Tải xuống" onAction="#download" styleClass="primary"/>
     </HBox>

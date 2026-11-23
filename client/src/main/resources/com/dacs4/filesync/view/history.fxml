@@ -4,25 +4,32 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.HistoryController" spacing="16" styleClass="page">
-    <Label text="Chọn tệp để xem các phiên bản đã lưu trong dữ liệu minh họa." styleClass="muted-text"/>
+    <Label fx:id="historyStatus" wrapText="true" styleClass="muted-text"/>
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <fx:define><ComboBox fx:id="file" prefWidth="285"/></fx:define>
+        <fx:define><ComboBox fx:id="file" promptText="Chọn tệp" prefWidth="285" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/></fx:define>
         <Label text="Tệp" labelFor="$file"/>
         <fx:reference source="file"/>
+        <Button fx:id="historyRefresh" text="Làm mới" onAction="#refresh"/>
     </HBox>
     <TableView fx:id="versions" VBox.vgrow="ALWAYS" minHeight="140"/>
     <VBox spacing="8">
-        <HBox spacing="8" alignment="CENTER_LEFT">
-            <Label fx:id="selectedDetails" text="Chọn một phiên bản để xem chi tiết." wrapText="true"
+        <HBox fx:id="versionActions" spacing="8" alignment="CENTER_LEFT">
+            <Label fx:id="selectedDetails" text="Chọn một phiên bản để xem chi tiết."
                    minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="restore" text="Khôi phục phiên bản đã chọn" onAction="#restore" styleClass="primary"/>
+            <Button fx:id="restore" text="Khôi phục…" disable="true" onAction="#restore" styleClass="action-width,primary"/>
         </HBox>
-        <HBox spacing="8" alignment="CENTER_LEFT">
-            <fx:define><TextField fx:id="checksum" editable="false" minWidth="0" HBox.hgrow="ALWAYS"/></fx:define>
-            <Label text="SHA-256 mẫu" labelFor="$checksum"/>
+        <HBox fx:id="selectedPathRow" spacing="8" alignment="CENTER_LEFT">
+            <fx:define><TextField fx:id="selectedPath" editable="false" minWidth="0" styleClass="readout" HBox.hgrow="ALWAYS"/></fx:define>
+            <Label text="Đường dẫn" labelFor="$selectedPath"/>
+            <fx:reference source="selectedPath"/>
+        </HBox>
+        <HBox fx:id="checksumRow" spacing="8" alignment="CENTER_LEFT">
+            <fx:define><TextField fx:id="checksum" editable="false" minWidth="0" styleClass="readout" HBox.hgrow="ALWAYS"/></fx:define>
+            <Label text="SHA-256" labelFor="$checksum"/>
             <fx:reference source="checksum"/>
-            <Button fx:id="copyChecksum" text="Sao chép" accessibleText="Sao chép mã SHA-256 mẫu" onAction="#copyChecksum"/>
-            <Label fx:id="copyStatus" prefWidth="125" styleClass="muted-text"/>
+            <Button fx:id="copyChecksum" text="Sao chép" accessibleText="Sao chép mã SHA-256" onAction="#copyChecksum"/>
+            <Label fx:id="copyStatus" styleClass="muted-text"/>
         </HBox>
     </VBox>
+    <Label fx:id="restoreStatus" wrapText="true" styleClass="muted-text" visible="false" managed="false"/>
 </VBox>

@@ -4,33 +4,33 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dacs4.filesync.controller.DashboardController" spacing="16" styleClass="page">
-    <Label text="Tình trạng đồng bộ tệp và thiết bị trong dữ liệu minh họa." styleClass="muted-text"/>
     <HBox spacing="12">
         <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="0" minWidth="0" spacing="8" styleClass="card">
-            <Label text="Thiết bị trực tuyến" styleClass="muted-text" wrapText="true"/>
-            <Label fx:id="onlineCount" styleClass="metric-value"/>
+            <Label text="Kết nối máy chủ" styleClass="muted-text" wrapText="true"/>
+            <Label fx:id="serverStatus" styleClass="badge,muted" wrapText="true"/>
         </VBox>
         <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="0" minWidth="0" spacing="8" styleClass="card">
-            <Label text="Tệp đã đồng bộ" styleClass="muted-text" wrapText="true"/>
-            <Label fx:id="syncedCount" styleClass="metric-value,success-text"/>
+            <Label text="Tệp trên máy chủ" styleClass="muted-text" wrapText="true"/>
+            <Label fx:id="fileCount" styleClass="metric-value"/>
         </VBox>
         <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="0" minWidth="0" spacing="8" styleClass="card">
-            <Label text="Tệp chờ đồng bộ" styleClass="muted-text" wrapText="true"/>
-            <Label fx:id="pendingCount" styleClass="metric-value,warning-text"/>
+            <Label text="Lịch sử phiên bản" styleClass="muted-text" wrapText="true"/>
+            <Label fx:id="historyStatus" styleClass="badge,muted" wrapText="true"/>
         </VBox>
         <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="0" minWidth="0" spacing="8" styleClass="card">
-            <Label text="Tệp xung đột" styleClass="muted-text" wrapText="true"/>
-            <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label fx:id="conflictCount" styleClass="metric-value,danger-text"/>
-                <Button fx:id="openConflicts" text="Xem xung đột"/>
-            </HBox>
+            <Label text="Xung đột cần xem" styleClass="muted-text" wrapText="true"/>
+            <Label fx:id="conflictCount" styleClass="metric-value"/>
         </VBox>
     </HBox>
     <HBox alignment="CENTER_LEFT" spacing="12" styleClass="card">
-        <Label text="Lần đồng bộ gần nhất" styleClass="section-title"/>
+        <Label text="Lần kết nối gần nhất" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="lastSync" styleClass="badge,info"/>
+        <Label fx:id="lastConnected" text="Chưa có kết nối" styleClass="badge,muted"/>
     </HBox>
-    <Label text="Hoạt động gần đây" styleClass="section-title"/>
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Hoạt động kết nối" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="openConflicts" text="Xem xung đột"/>
+    </HBox>
     <TableView fx:id="activities" VBox.vgrow="ALWAYS" minHeight="140"/>
 </VBox>

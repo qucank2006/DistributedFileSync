@@ -24,8 +24,8 @@
             <fx:reference source="ip"/>
             <fx:reference source="port"/>
             <HBox spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                <Button fx:id="connect" text="Kết nối" onAction="#connectServer" styleClass="primary"/>
-                <Button fx:id="disconnect" text="Ngắt kết nối" onAction="#disconnect"/>
+                <Button fx:id="connect" text="Kết nối" onAction="#connectServer" prefWidth="120" styleClass="primary"/>
+                <Button fx:id="disconnect" text="Ngắt kết nối" onAction="#disconnect" prefWidth="120"/>
             </HBox>
             <Label fx:id="ipError" styleClass="danger-text" wrapText="true" GridPane.rowIndex="2"/>
             <Label fx:id="portError" styleClass="danger-text" wrapText="true"
@@ -33,9 +33,18 @@
         </GridPane>
         <Label fx:id="connectionDetail" wrapText="true"/>
     </VBox>
-    <Label text="Thiết bị minh họa" styleClass="section-title"/>
-    <TableView fx:id="devices" VBox.vgrow="ALWAYS" minHeight="140"/>
-    <HBox alignment="CENTER_LEFT" spacing="8">
-        <Label fx:id="selectedDevice" styleClass="muted-text" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-    </HBox>
+    <VBox spacing="10" styleClass="card">
+        <Label text="Phiên TCP hiện tại" styleClass="section-title"/>
+        <Label fx:id="sessionEmpty" text="Chưa có phiên đang hoạt động." styleClass="muted-text"/>
+        <GridPane fx:id="sessionDetails" hgap="12" vgap="8">
+            <columnConstraints><ColumnConstraints minWidth="90"/><ColumnConstraints hgrow="ALWAYS"/></columnConstraints>
+            <fx:define>
+                <TextField fx:id="sessionId" editable="false" styleClass="readout" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </fx:define>
+            <Label text="Máy chủ" styleClass="muted-text"/>
+            <Label fx:id="endpoint" GridPane.columnIndex="1"/>
+            <Label text="Mã phiên" labelFor="$sessionId" styleClass="muted-text" GridPane.rowIndex="1"/>
+            <fx:reference source="sessionId"/>
+        </GridPane>
+    </VBox>
 </VBox>

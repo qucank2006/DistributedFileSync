@@ -42,6 +42,30 @@ public final class Views {
         table.setPlaceholder(new Label(emptyMessage));
     }
 
+    public static Tooltip fullText(String text) {
+        var tooltip = new Tooltip(text);
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(460);
+        return tooltip;
+    }
+
+    public static String filenameFirst(String path) {
+        int slash = path.lastIndexOf('/');
+        return slash < 0 ? path : path.substring(slash + 1) + " · " + path.substring(0, slash);
+    }
+
+    public static <T> void readableChoices(ComboBox<T> box, Function<T, String> display, Function<T, String> full) {
+        java.util.function.Supplier<ListCell<T>> cell = () -> new ListCell<>() {
+            @Override protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : display.apply(item));
+                setTooltip(empty || item == null ? null : fullText(full.apply(item)));
+            }
+        };
+        box.setCellFactory(ignored -> cell.get());
+        box.setButtonCell(cell.get());
+    }
+
     public static void icon(Button button, String path) {
         SVGPath graphic = new SVGPath();
         graphic.setContent(path);

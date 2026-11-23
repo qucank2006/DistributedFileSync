@@ -13,17 +13,12 @@
                     <Label text="Đồ án DACS4" styleClass="muted-text"/>
                 </VBox>
             </HBox>
-            <Label text="ĐIỀU HƯỚNG" styleClass="eyebrow"/>
             <Button fx:id="dashboard" text="Tổng quan" onAction="#showDashboard" maxWidth="Infinity" styleClass="nav-button"/>
             <Button fx:id="files" text="Quản lý tệp" onAction="#showFiles" maxWidth="Infinity" styleClass="nav-button"/>
             <Button fx:id="history" text="Lịch sử phiên bản" onAction="#showHistory" maxWidth="Infinity" styleClass="nav-button"/>
             <Button fx:id="conflicts" text="Xử lý xung đột" onAction="#showConflicts" maxWidth="Infinity" styleClass="nav-button"/>
             <Button fx:id="devices" text="Quản lý thiết bị" onAction="#showDevices" maxWidth="Infinity" styleClass="nav-button"/>
             <Region VBox.vgrow="ALWAYS"/>
-            <VBox spacing="5" styleClass="sidebar-note">
-                <Label text="BẢN MẪU" styleClass="eyebrow"/>
-                <Label text="Danh sách tệp máy chủ dùng dữ liệu thật. Các số liệu khác là minh họa." wrapText="true" styleClass="muted-text"/>
-            </VBox>
         </VBox>
     </left>
     <center>

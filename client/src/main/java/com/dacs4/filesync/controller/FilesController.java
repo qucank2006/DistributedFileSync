@@ -11,6 +11,7 @@ import javafx.animation.Animation;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -30,23 +31,44 @@ public final class FilesController {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/uuuu HH:mm")
         .withZone(ZoneId.systemDefault());
 
-    @FXML private TextField search;
+    @FXML private TextField search, selectedPath;
+    @FXML private javafx.scene.layout.HBox pathRow;
     @FXML private Label count, transferStatus;
     @FXML private TableView<FileMetadata> files;
-    @FXML private Button upload, download, refresh, cancel, clearFilters;
+    @FXML private Button upload, download, refresh, cancel, clearFilters, openVersionHistory;
+    private java.util.function.Consumer<String> openHistory;
     @FXML private ProgressBar transferProgress;
 
     private final ObservableList<FileMetadata> serverFiles = FXCollections.observableArrayList();
+    private final ObservableList<FileMetadata> serverFilesView = FXCollections.unmodifiableObservableList(serverFiles);
+    private final javafx.beans.property.ReadOnlyBooleanWrapper listingReady = new javafx.beans.property.ReadOnlyBooleanWrapper();
+    private final Label listPlaceholder = new Label();
+    private boolean listingFailed;
     private final FilteredList<FileMetadata> filtered = new FilteredList<>(serverFiles);
     private ConnectionService connection;
     private FileService transfers;
+    private boolean active;
     private boolean refreshPending;
     private final PauseTransition notificationRefresh = new PauseTransition(Duration.millis(350));
 
     @FXML private void initialize() {
         Views.table(files, "Kết nối máy chủ để xem danh sách tệp.");
+        files.setPlaceholder(listPlaceholder);
+        var selection = files.getSelectionModel().selectedItemProperty();
+        pathRow.visibleProperty().bind(selection.isNotNull());
+        pathRow.managedProperty().bind(pathRow.visibleProperty());
+        selectedPath.textProperty().bind(Bindings.createStringBinding(
+            () -> selection.get() == null ? "" : selection.get().relativePath(), selection));
         files.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
-        Views.column(files, "Tên tệp", 230, FileMetadata::name).setPrefWidth(360);
+        var name = Views.column(files, "Tên tệp", 230, FileMetadata::name);
+        name.setPrefWidth(460);
+        name.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(String path, boolean empty) {
+                super.updateItem(path, empty);
+                setText(empty || path == null ? null : Views.filenameFirst(path));
+                setTooltip(empty || path == null ? null : Views.fullText(path));
+            }
+        });
         var size = Views.column(files, "Dung lượng", 125, FileMetadata::size);
         size.getStyleClass().add("numeric-column");
         size.setCellFactory(column -> new TableCell<>() {
@@ -68,7 +90,9 @@ public final class FilesController {
         sorted.comparatorProperty().bind(files.comparatorProperty());
         files.setItems(sorted);
         search.textProperty().addListener((observable, before, after) -> filter());
-        filtered.addListener((javafx.collections.ListChangeListener<FileMetadata>) change -> updateCount());
+        filtered.addListener((ListChangeListener<FileMetadata>) change -> {
+            updateCount();
+        });
         filter();
     }
 
@@ -81,27 +105,68 @@ public final class FilesController {
         upload.disableProperty().bind(unavailable);
         refresh.disableProperty().bind(unavailable);
         download.disableProperty().bind(unavailable.or(files.getSelectionModel().selectedItemProperty().isNull()));
+        openVersionHistory.disableProperty().bind(Bindings.createBooleanBinding(
+            () -> status.get().state() != ConnectionState.CONNECTED, status)
+            .or(files.getSelectionModel().selectedItemProperty().isNull()));
         cancel.disableProperty().bind(transfers.cancellableProperty().not());
+        cancel.visibleProperty().bind(transfers.cancellableProperty());
+        cancel.managedProperty().bind(cancel.visibleProperty());
         transferProgress.progressProperty().bind(transfers.progressProperty());
         transferProgress.visibleProperty().bind(transfers.busyProperty());
         transferProgress.managedProperty().bind(transferProgress.visibleProperty());
-        notificationRefresh.setOnFinished(event -> refresh());
+        notificationRefresh.setOnFinished(event -> {
+            refreshIfPending();
+        });
         service.setFileChangeListener(notification -> {
-            if (notificationRefresh.getStatus() != Animation.Status.RUNNING) {
-                notificationRefresh.playFromStart();
-            }
+            markServerFilesStale();
+        });
+        service.setLocalUploadCommittedListener(() -> {
+            markServerFilesStale();
         });
         status.addListener((observable, before, after) -> {
             notificationRefresh.stop();
             if (after.state() == ConnectionState.CONNECTED) {
+                updateCount();
                 refresh();
             } else {
+                listingReady.set(false);
+                listingFailed = false;
                 refreshPending = false;
                 serverFiles.clear();
                 updateCount();
-                files.setPlaceholder(new Label("Kết nối máy chủ để xem danh sách tệp."));
+                transferStatus.setText("");
             }
         });
+    }
+
+    ObservableList<FileMetadata> serverFiles() {
+        return serverFilesView;
+    }
+
+    javafx.beans.property.ReadOnlyBooleanProperty listingReadyProperty() {
+        return listingReady.getReadOnlyProperty();
+    }
+
+    javafx.beans.property.ReadOnlyBooleanProperty busyProperty() {
+        return transfers.busyProperty();
+    }
+
+    void setOpenHistoryAction(java.util.function.Consumer<String> action) {
+        openHistory = action;
+    }
+
+    @FXML private void openVersionHistory() {
+        var selected = files.getSelectionModel().getSelectedItem();
+        if (selected != null && openHistory != null) {
+            openHistory.accept(selected.relativePath());
+        }
+    }
+
+    private void markServerFilesStale() {
+        refreshPending = true;
+        if (active && notificationRefresh.getStatus() != Animation.Status.RUNNING) {
+            notificationRefresh.playFromStart();
+        }
     }
 
     void cancelTransferOnClose() {
@@ -111,11 +176,13 @@ public final class FilesController {
         }
     }
 
-    void refreshNotificationsOnOpen() {
-        if (notificationRefresh.getStatus() == Animation.Status.RUNNING) {
-            notificationRefresh.stop();
-            refresh();
+    void setActive(boolean active) {
+        if (this.active == active) {
+            return;
         }
+        this.active = active;
+        notificationRefresh.stop();
+        refreshIfPending();
     }
 
     private void filter() {
@@ -126,7 +193,13 @@ public final class FilesController {
     }
 
     private void updateCount() {
-        count.setText("Hiển thị " + filtered.size() + "/" + serverFiles.size() + " tệp");
+        boolean connected = connection != null && connection.connectedClient() != null;
+        count.setText(listingReady.get() ? "Hiển thị " + filtered.size() + "/" + serverFiles.size() + " tệp" : "");
+        listPlaceholder.setText(!connected ? "Kết nối máy chủ để xem danh sách tệp."
+            : listingFailed ? "Không tải được danh sách. Chọn Làm mới để thử lại."
+            : !listingReady.get() ? "Đang tải danh sách tệp…"
+            : serverFiles.isEmpty() ? "Máy chủ chưa có tệp."
+            : "Không có tệp khớp với tìm kiếm.");
     }
 
     @FXML private void clearFilters() {
@@ -134,16 +207,24 @@ public final class FilesController {
         search.requestFocus();
     }
 
-    @FXML private void refresh() {
+    @FXML void refresh() {
+        refreshPending = true;
+        notificationRefresh.stop();
+        refreshIfPending();
+    }
+
+    private void refreshIfPending() {
+        if (!active || !refreshPending || transfers.busyProperty().get()) {
+            return;
+        }
         var session = connection.connectedClient();
         if (session == null) {
             return;
         }
-        if (transfers.busyProperty().get()) {
-            refreshPending = true;
-            return;
-        }
+        notificationRefresh.stop();
         refreshPending = false;
+        listingFailed = false;
+        updateCount();
         transfers.list(result -> {
             if (session == connection.connectedClient()) {
                 if (!serverFiles.equals(result)) {
@@ -155,10 +236,27 @@ public final class FilesController {
                     }
                     updateCount();
                 }
-                files.setPlaceholder(new Label("Không có tệp máy chủ phù hợp."));
+                listingReady.set(true);
+                updateCount();
             }
-            refreshIfPending();
-        }, this::failed);
+            refreshAfterOperation();
+        }, error -> {
+            if (session != connection.connectedClient()) {
+                refreshAfterOperation();
+                return;
+            }
+            listingFailed = true;
+            updateCount();
+            if (listingReady.get()) {
+                showTransferStatus("Không cập nhật được danh sách. Chọn Làm mới để thử lại.", "danger-text");
+            }
+            if (refreshPending) {
+                refreshAfterOperation();
+            } else {
+                // Retry on the next notification or page open, without retrying in a loop.
+                refreshPending = true;
+            }
+        });
     }
 
     @FXML private void upload() {
@@ -168,8 +266,8 @@ public final class FilesController {
         if (source == null || upload.isDisable()) {
             return;
         }
-        transferStatus.setText("Đang tải lên " + source.getName() + "…");
-        transfers.upload(source.toPath(), () -> finished("Đã tải lên " + source.getName() + "."), this::failed);
+        showTransferStatus("Đang tải lên " + source.getName() + "…", "muted-text");
+        transfers.upload(source.toPath(), () -> finished("Đã tải lên " + source.getName() + "."), this::fileOperationFailed);
     }
 
     @FXML private void download() {
@@ -177,35 +275,45 @@ public final class FilesController {
         if (selected == null || download.isDisable()) {
             return;
         }
-        transferStatus.setText("Đang tải xuống " + selected.name() + "…");
-        transfers.download(selected, path -> finished("Đã lưu tại " + path), this::failed);
+        showTransferStatus("Đang tải xuống " + Views.filenameFirst(selected.name()) + "…", "muted-text");
+        transfers.download(selected, path -> finished("Đã lưu tại " + path), this::fileOperationFailed);
     }
 
     @FXML private void cancel() {
         transfers.cancel();
-        transferStatus.setText("Đang hủy thao tác…");
+        showTransferStatus("Đang hủy thao tác…", "muted-text");
     }
 
     private void finished(String message) {
-        transferStatus.setText(message);
+        showTransferStatus(message, "success-text");
         refresh();
     }
 
     private void failed(Throwable error) {
-        transferStatus.setText(switch (error) {
+        showTransferStatus(switch (error) {
             case FileTransferClient.Cancelled ignored -> "Đã hủy truyền tệp.";
             case FileTransferClient.Failure failure -> failure.getMessage();
             case FileAlreadyExistsException ignored -> "Tệp cùng tên đã có trong thư mục tải xuống.";
             case SocketTimeoutException ignored -> "Máy chủ không phản hồi đúng hạn.";
             case ProtocolException ignored -> "Phản hồi truyền tệp không hợp lệ.";
             default -> "Không thể hoàn thành thao tác. Kiểm tra kết nối và quyền đọc hoặc ghi tệp.";
-        });
-        refreshIfPending();
+        }, error instanceof FileTransferClient.Cancelled ? "muted-text" : "danger-text");
     }
 
-    private void refreshIfPending() {
-        if (refreshPending) {
-            refresh();
+    private void showTransferStatus(String text, String style) {
+        transferStatus.setText(text);
+        transferStatus.getStyleClass().setAll("label", style);
+    }
+
+    private void fileOperationFailed(Throwable error) {
+        failed(error);
+        refreshAfterOperation();
+    }
+
+    private void refreshAfterOperation() {
+        if (notificationRefresh.getStatus() != Animation.Status.RUNNING) {
+            refreshIfPending();
         }
     }
+
 }

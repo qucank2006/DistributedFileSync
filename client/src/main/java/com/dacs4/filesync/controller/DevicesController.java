@@ -1,19 +1,18 @@
 package com.dacs4.filesync.controller;
 
-import com.dacs4.filesync.model.DemoRecords.*;
-import com.dacs4.filesync.service.DemoData;
 import com.dacs4.filesync.util.Views;
 import com.dacs4.filesync.service.ConnectionService;
+import com.dacs4.filesync.network.ConnectionState;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.css.PseudoClass;
 import javafx.beans.binding.Bindings;
 
 public final class DevicesController {
-    @FXML private TableView<Device> devices;
-    @FXML private TextField ip, port;
+    @FXML private TextField ip, port, sessionId;
     @FXML private Button connect, disconnect;
-    @FXML private Label ipError, portError, selectedDevice, connectionDetail;
+    @FXML private Label ipError, portError, connectionDetail, sessionEmpty, endpoint;
+    @FXML private javafx.scene.layout.GridPane sessionDetails;
     private ConnectionService connection;
 
     private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
@@ -21,15 +20,13 @@ public final class DevicesController {
     private static final String PORT_ERROR = "Dùng cổng 1–65535.";
 
     @FXML private void initialize() {
-        Views.table(devices, "Chưa có thiết bị mẫu.");
-        Views.column(devices, "Thiết bị", 158, Device::name);
-        Views.column(devices, "Địa chỉ IP", 120, Device::ip);
-        Views.column(devices, "Lần cuối xuất hiện", 150, Device::lastSeen).setSortable(false);
-        Views.column(devices, "Loại kết nối", 100, Device::connectionType);
-        devices.setItems(new DemoData().devices());
-        var selected = devices.getSelectionModel().selectedItemProperty();
-        selectedDevice.textProperty().bind(Bindings.createStringBinding(
-            () -> selected.get() == null ? "Chưa chọn thiết bị" : "Thiết bị đã chọn · " + selected.get().name(), selected));
+        ipError.visibleProperty().bind(ipError.textProperty().isNotEmpty());
+        ipError.managedProperty().bind(ipError.visibleProperty());
+        portError.visibleProperty().bind(portError.textProperty().isNotEmpty());
+        portError.managedProperty().bind(portError.visibleProperty());
+        sessionDetails.managedProperty().bind(sessionDetails.visibleProperty());
+        sessionEmpty.visibleProperty().bind(sessionDetails.visibleProperty().not());
+        sessionEmpty.managedProperty().bind(sessionEmpty.visibleProperty());
         ip.textProperty().addListener((observable, before, value) -> {
             if (!ipError.getText().isEmpty()) {
                 setError(ip, ipError, Views.validIpv4(value.strip()) ? "" : IP_ERROR);
@@ -40,7 +37,6 @@ public final class DevicesController {
                 setError(port, portError, validPort(value.strip()) ? "" : PORT_ERROR);
             }
         });
-        devices.getSelectionModel().selectFirst();
     }
 
     void bindConnection(ConnectionService service) {
@@ -49,12 +45,41 @@ public final class DevicesController {
         var active = Bindings.createBooleanBinding(() -> status.get().state().active(), status);
         connect.disableProperty().bind(active);
         disconnect.disableProperty().bind(active.not());
+        connect.visibleProperty().bind(active.not());
+        disconnect.visibleProperty().bind(active);
+        connect.managedProperty().bind(connect.visibleProperty());
+        disconnect.managedProperty().bind(disconnect.visibleProperty());
         ip.disableProperty().bind(active);
         port.disableProperty().bind(active);
         connectionDetail.textProperty().bind(Bindings.createStringBinding(() -> {
             var current = status.get();
-            return current.detail().isEmpty() ? current.state().label() : current.detail();
+            return current.state() == ConnectionState.CONNECTED ? ""
+                : current.detail();
         }, status));
+        connectionDetail.visibleProperty().bind(connectionDetail.textProperty().isNotEmpty());
+        connectionDetail.managedProperty().bind(connectionDetail.visibleProperty());
+        status.addListener((property, before, after) -> {
+            connectionDetail.getStyleClass().setAll("label",
+                after.state() == ConnectionState.ERROR ? "danger-text" : "muted-text");
+            refreshSession();
+            if (after.state() == ConnectionState.DISCONNECTED && ip.getScene() != null) {
+                connect.requestFocus();
+            }
+        });
+        refreshSession();
+    }
+
+    private void refreshSession() {
+        var client = connection.connectedClient();
+        sessionDetails.setVisible(client != null);
+        if (client != null) {
+            var address = client.serverEndpoint();
+            endpoint.setText(address.getHostString() + ":" + address.getPort());
+            sessionId.setText(client.debugSessionId());
+        } else {
+            sessionId.clear();
+            endpoint.setText("");
+        }
     }
 
     @FXML private void disconnect() {

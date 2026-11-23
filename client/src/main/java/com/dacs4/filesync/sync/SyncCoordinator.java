@@ -1,6 +1,7 @@
 package com.dacs4.filesync.sync;
 
 import java.io.IOException;
+import com.dacs4.filesync.shared.logging.AppLogging.WarningLimiter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class SyncCoordinator implements AutoCloseable {
     private static final System.Logger LOG = System.getLogger(SyncCoordinator.class.getName());
+    private final WarningLimiter stabilizationLog = new WarningLimiter();
     private static final long QUIET_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
     private static final long MAX_WAIT_NANOS = TimeUnit.SECONDS.toNanos(30);
     private static final int MAX_PENDING = 4096;
@@ -32,19 +34,34 @@ public final class SyncCoordinator implements AutoCloseable {
         this.listener = Objects.requireNonNull(listener);
     }
 
-    public static SyncCoordinator forLocalLogging() {
+    public static Path configuredRoot() {
         String configured = System.getProperty("filesync.sync.root");
         if (configured != null && configured.isBlank()) {
             throw new java.nio.file.InvalidPathException(configured, "Sync root cannot be blank");
         }
-        Path root = configured == null
+        return configured == null
             ? Path.of(System.getProperty("user.home"), "DistributedFileSync", "sync")
             : Path.of(configured);
-        return new SyncCoordinator(root, event -> LOG.log(System.Logger.Level.INFO,
-            "Local {0}: {1} | size={2} | ready={3} | timestamp={4}",
-            event.type(), event.relativePath(),
-            event.size().isPresent() ? event.size().getAsLong() : "unavailable",
-            event.ready(), event.timestamp()));
+    }
+
+    public static SyncCoordinator forLocalLogging() {
+        return new SyncCoordinator(configuredRoot(), SyncCoordinator::logLocal);
+    }
+
+    public static SyncCoordinator forCreateSync(Path root, SyncTransferManager transfers) {
+        return new SyncCoordinator(root, event -> {
+            logLocal(event);
+            if (event.ready()) {
+                transfers.onLocalChange(event);
+            }
+        });
+    }
+
+    private static void logLocal(FileChangeEvent event) {
+        if (LOG.isLoggable(System.Logger.Level.TRACE)) {
+            LOG.log(System.Logger.Level.TRACE, "Local {0}: {1}, ready={2}",
+                event.type(), event.relativePath(), event.ready());
+        }
     }
 
     public synchronized void start() {
@@ -109,7 +126,7 @@ public final class SyncCoordinator implements AutoCloseable {
                     if (previous != null && previous.event().type() == FileChangeEvent.Type.CREATE
                             && event.type() == FileChangeEvent.Type.MODIFY) {
                         event = new FileChangeEvent(FileChangeEvent.Type.CREATE, path,
-                            event.timestamp(), event.size(), false);
+                            previous.event().timestamp(), event.size(), false);
                     }
                     long now = System.nanoTime();
                     long firstSeen = previous == null ? now : previous.firstSeen();
@@ -203,7 +220,7 @@ public final class SyncCoordinator implements AutoCloseable {
                 readyEvent = new FileChangeEvent(type, path, event.timestamp(),
                     current == null ? OptionalLong.empty() : OptionalLong.of(current.size()), settled);
             }
-            if (!settled) {
+            if (!settled && stabilizationLog.allow()) {
                 LOG.log(System.Logger.Level.WARNING, "File did not stabilize within 30 seconds: {0}", path);
             }
             if (!stopped) {
